@@ -20,9 +20,17 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@apps/backtesting/*": ["./src/apps/backtesting/*"],
+      "@core/*": ["./src/core/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/core/components/dataTable/hooks/useTableData"
+  ],
   "exclude": ["node_modules"]
 }
