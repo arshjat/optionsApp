@@ -1,41 +1,46 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import _keys from "lodash/keys";
 
-//types
-import { Provider } from "@core/data/types/providers";
-import { Instrument } from "@core/types/instrument";
-import { TimeFrame } from "@core/types/timeframe";
-import { useDataProviderContext } from "@/src/core/contexts/dataProvider/hooks/useDataProviderContext";
+//constants
+import { DP_CHANGE_EVENT } from "@core/data/providers/danfo";
 
-export const useTableData = ({
-  instrument,
-  timeframe,
-}: {
-  instrument: Instrument;
-  timeframe: TimeFrame;
-}): {
+//types
+import { useDataProviderContext } from "@core/contexts/dataProvider/hooks/useDataProviderContext";
+
+export const useTableData = (): {
   data: Array<object> | null;
   loading: boolean;
 } => {
   const [tableData, setTableData] = useState<Array<object> | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const ProviderInst = useDataProviderContext();
+  const DataProviderInst = useDataProviderContext();
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    await ProviderInst.setMetaData({ instrument, timeframe });
 
-    const res = await ProviderInst.getData();
+    const res = await DataProviderInst.getData();
 
     setTableData(res);
     setLoading(false);
-  }, [instrument, timeframe, ProviderInst]);
+  }, [DataProviderInst]);
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instrument, timeframe]);
+  }, [loadData]);
+
+  useEffect(() => {
+    DataProviderInst.addEventListener(DP_CHANGE_EVENT, () => {
+      console.log("hey there");
+      loadData();
+    });
+
+    return () => {
+      DataProviderInst.removeEventListener(DP_CHANGE_EVENT, () => {
+        loadData();
+      });
+    };
+  }, [loadData, DataProviderInst]);
 
   return {
     data: tableData,

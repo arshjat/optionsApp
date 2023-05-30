@@ -1,6 +1,6 @@
 import "app/globals.css";
 
-import { Nifty } from "@/src/apps/backtesting/instruments/nifty";
+import { Nifty } from "@apps/backtesting/instruments/nifty";
 
 const Page = () => {
   return (

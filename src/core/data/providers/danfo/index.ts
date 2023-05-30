@@ -7,14 +7,19 @@ import { getFilePath } from "@core/data/utils/filePath";
 import { Instrument } from "@core/types/instrument";
 import { TimeFrame } from "@core/types/timeframe";
 
-export class DanfoProvider {
+export const DP_CHANGE_EVENT = "dpContextChange";
+
+export class DanfoProvider extends EventTarget {
   private _df?: DataFrame;
 
-  private _timeFrame?: TimeFrame;
+  private _timeFrame: TimeFrame = TimeFrame.FIVE_MIN;
 
-  private _instrument?: Instrument;
+  private _instrument: Instrument = Instrument.NIFTY;
 
-  constructor() {}
+  constructor(instrument: Instrument) {
+    super();
+    this._instrument = instrument;
+  }
 
   async getData(): Promise<Array<object> | null> {
     const filePath = this._getFilePath();
@@ -23,9 +28,7 @@ export class DanfoProvider {
       return Promise.resolve(null);
     }
 
-    if (!this._df) {
-      this._df = await readCSV(filePath);
-    }
+    this._df = await readCSV(filePath);
 
     return (toJSON(this._df) ?? null) as any;
   }
@@ -41,34 +44,30 @@ export class DanfoProvider {
     this._timeFrame = timeframe;
   }
 
-  async setInstrument(instrument: Instrument) {
+  setInstrument(instrument: Instrument) {
     this._instrument = instrument;
 
-    await this._updateDataFrame();
+    this.dispatchEvent(new CustomEvent(DP_CHANGE_EVENT));
   }
 
-  async setTimeFrame(timeframe: TimeFrame) {
+  setTimeFrame(timeframe: TimeFrame) {
     this._timeFrame = timeframe;
 
-    await this._updateDataFrame();
+    this.dispatchEvent(new CustomEvent(DP_CHANGE_EVENT));
   }
 
   private _getFilePath(): string | undefined {
-    if (!this._instrument || !this._timeFrame) {
-      return undefined;
-    }
-
     return getFilePath({
       instrument: this._instrument,
       timeframe: this._timeFrame,
     });
   }
 
-  private async _updateDataFrame(): Promise<void> {
-    const filePath = this._getFilePath();
+  getTimeFrame(): TimeFrame {
+    return this._timeFrame;
+  }
 
-    if (filePath) {
-      this._df = await readCSV(filePath);
-    }
+  getInstrument(): Instrument {
+    return this._instrument;
   }
 }
